@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Money Transaction Manager</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <i class="fas fa-mobile-alt"></i>
+                    <h1>Mobile Money Manager</h1>
+                </div>
+                <div class="header-stats">
+                    <div class="stat-card">
+                        <span class="stat-label">Solde Total</span>
+                        <span class="stat-value" id="totalBalance">0 Ar</span>
+                    </div>
+                    <div class="stat-card">
+                        <span class="stat-label">Transactions</span>
+                        <span class="stat-value" id="totalTransactions">0</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Section de questions guidées -->
+            <section class="guided-questions-section" id="guidedQuestions">
+                <div class="form-card">
+                    <h2><i class="fas fa-question-circle"></i> Quel type d'opération ?</h2>
+                    <div class="question-options">
+                        <button class="option-btn" onclick="startGuidedTransaction('transfert-envoye')">
+                            <i class="fas fa-arrow-up"></i>
+                            <h3>Transfert d'argent</h3>
+                            <p>Envoyer de l'argent à quelqu'un</p>
+                        </button>
+                        <button class="option-btn" onclick="startGuidedTransaction('depot-recu')">
+                            <i class="fas fa-arrow-down"></i>
+                            <h3>Dépôt d'argent</h3>
+                            <p>Recevoir un dépôt</p>
+                        </button>
+                        <button class="option-btn" onclick="startGuidedTransaction('retrait-envoye')">
+                            <i class="fas fa-hand-holding-usd"></i>
+                            <h3>Retrait d'argent</h3>
+                            <p>Retirer de l'argent</p>
+                        </button>
+                        <button class="option-btn" onclick="startGuidedTransaction('paiement-envoye')">
+                            <i class="fas fa-shopping-cart"></i>
+                            <h3>Paiement</h3>
+                            <p>Payer un bien ou service</p>
+                        </button>
+                    </div>
+                    <div class="manual-entry">
+                        <button class="btn btn-outline" onclick="showManualForm()">
+                            <i class="fas fa-edit"></i> Remplir manuellement
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section du formulaire détaillé -->
+            <section class="transaction-form-section" id="transactionFormSection" style="display: none;">
+                <div class="form-card">
+                    <div class="form-header">
+                        <h2><i class="fas fa-plus-circle"></i> <span id="formTitle">Nouvelle Transaction</span></h2>
+                        <button class="btn btn-outline btn-sm" onclick="backToQuestions()">
+                            <i class="fas fa-arrow-left"></i> Retour
+                        </button>
+                    </div>
+                    <form id="transactionForm" class="transaction-form">
+                        <div class="quick-info" id="quickInfo" style="display: none;">
+                            <div class="info-badge">
+                                <i class="fas fa-info-circle"></i>
+                                <span id="quickInfoText"></span>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="transactionType">Type de Transaction</label>
+                                <select id="transactionType" required>
+                                    <option value="">Sélectionner...</option>
+                                    <option value="transfert">Transfert</option>
+                                    <option value="depot">Dépôt</option>
+                                    <option value="retrait">Retrait</option>
+                                    <option value="paiement">Paiement</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="direction">Direction</label>
+                                <select id="direction" required>
+                                    <option value="">Sélectionner...</option>
+                                    <option value="envoye">Envoyé</option>
+                                    <option value="recu">Reçu</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Champs principaux toujours visibles -->
+                        <div class="essential-fields">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="amount">Montant (Ar)</label>
+                                    <input type="number" id="amount" min="0" step="100" required placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="name">Nom du Client</label>
+                                    <input type="text" id="name" required placeholder="Nom complet">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="phone">Numéro de Téléphone</label>
+                                    <input type="tel" id="phone" required placeholder="+261 XX XXX XX XX">
+                                </div>
+                                <div class="form-group">
+                                    <label for="operator">Opérateur</label>
+                                    <select id="operator">
+                                        <option value="telma">Telma Money</option>
+                                        <option value="mtn">Mvola</option>
+                                        <option value="airtel">Airtel Money</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Champs optionnels masqués par défaut -->
+                        <div class="optional-fields" id="optionalFields" style="display: none;">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="fees">Frais (Ar)</label>
+                                    <input type="number" id="fees" min="0" step="10" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="reference">Référence</label>
+                                    <input type="text" id="reference" placeholder="Référence de transaction">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="date">Date</label>
+                                    <input type="date" id="date" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="time">Heure</label>
+                                    <input type="time" id="time" required>
+                                </div>
+                            </div>
+
+                            <div class="form-group full-width">
+                                <label for="description">Description</label>
+                                <textarea id="description" rows="2" placeholder="Description ou notes supplémentaires..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" class="btn btn-outline" onclick="toggleOptionalFields()" id="toggleFieldsBtn">
+                                <i class="fas fa-cog"></i> Plus d'options
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Enregistrer
+                            </button>
+                            <button type="reset" class="btn btn-secondary">
+                                <i class="fas fa-redo"></i> Réinitialiser
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            <section class="transactions-section">
+                <div class="section-header">
+                    <h2><i class="fas fa-list"></i> Historique des Transactions</h2>
+                    <div class="section-controls">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" placeholder="Rechercher une transaction...">
+                            <i class="fas fa-search"></i>
+                        </div>
+                        <div class="filter-controls">
+                            <select id="filterType">
+                                <option value="">Tous les types</option>
+                                <option value="transfert">Transfert</option>
+                                <option value="depot">Dépôt</option>
+                                <option value="retrait">Retrait</option>
+                                <option value="paiement">Paiement</option>
+                            </select>
+                            <select id="filterDirection">
+                                <option value="">Toutes les directions</option>
+                                <option value="envoye">Envoyé</option>
+                                <option value="recu">Reçu</option>
+                            </select>
+                            <select id="filterOperator">
+                                <option value="">Tous les opérateurs</option>
+                                <option value="telma">Telma Money</option>
+                                <option value="mtn">Mvola</option>
+                                <option value="airtel">Airtel Money</option>
+                            </select>
+                        </div>
+                        <div class="action-buttons">
+                            <button id="exportBtn" class="btn btn-outline">
+                                <i class="fas fa-download"></i> Exporter
+                            </button>
+                            <button id="printBtn" class="btn btn-outline">
+                                <i class="fas fa-print"></i> Imprimer
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="transactions-container">
+                    <div class="table-wrapper">
+                        <table class="transactions-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Heure</th>
+                                    <th>Type</th>
+                                    <th>Direction</th>
+                                    <th>Montant</th>
+                                    <th>Frais</th>
+                                    <th>Net</th>
+                                    <th>Nom</th>
+                                    <th>Téléphone</th>
+                                    <th>Opérateur</th>
+                                    <th>Référence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactionsList">
+                                <!-- Les transactions seront ajoutées ici dynamiquement -->
+                            </tbody>
+                        </table>
+                        <div id="emptyState" class="empty-state">
+                            <i class="fas fa-inbox"></i>
+                            <h3>Aucune transaction</h3>
+                            <p>Commencez par ajouter votre première transaction</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pagination" id="pagination">
+                    <!-- La pagination sera ajoutée dynamiquement -->
+                </div>
+            </section>
+
+            <section class="statistics-section">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-arrow-up"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Total Envoyé</h3>
+                            <p class="stat-value" id="totalSent">0 FCFA</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-arrow-down"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Total Reçu</h3>
+                            <p class="stat-value" id="totalReceived">0 FCFA</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-percentage"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Total Frais</h3>
+                            <p class="stat-value" id="totalFees">0 FCFA</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3>Moyenne Transaction</h3>
+                            <p class="stat-value" id="avgTransaction">0 FCFA</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-exclamation-triangle"></i> Confirmer la suppression</h3>
+                <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p>Êtes-vous sûr de vouloir supprimer cette transaction ?</p>
+                <p class="transaction-details" id="deleteTransactionDetails"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+                <button class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash"></i> Supprimer
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de détails de transaction -->
+    <div id="detailsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-info-circle"></i> Détails de la Transaction</h3>
+                <button class="modal-close" onclick="closeDetailsModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="transactionDetails">
+                <!-- Les détails seront ajoutés dynamiquement -->
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeDetailsModal()">Fermer</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
