@@ -6,6 +6,7 @@ class TransactionManager {
         this.itemsPerPage = 10;
         this.filteredTransactions = [...this.transactions];
         this.currentTransactionType = null;
+        this.lastDetectedOperator = null;
         this.init();
     }
 
@@ -48,9 +49,18 @@ class TransactionManager {
             this.confirmDelete();
         });
 
-        // Validation du numéro de téléphone
-        document.getElementById('phone').addEventListener('input', (e) => {
+        // Validation du numéro de téléphone avec détection en temps réel
+        const phoneInput = document.getElementById('phone');
+        phoneInput.addEventListener('input', (e) => {
             this.validatePhoneNumber(e.target);
+        });
+        phoneInput.addEventListener('keyup', (e) => {
+            this.validatePhoneNumber(e.target);
+        });
+        phoneInput.addEventListener('paste', (e) => {
+            setTimeout(() => {
+                this.validatePhoneNumber(e.target);
+            }, 10);
         });
     }
 
@@ -143,6 +153,51 @@ class TransactionManager {
             value = '+261' + value.replace(/^261/, '');
         }
         input.value = value;
+        
+        // Détection automatique de l'opérateur en temps réel
+        this.detectOperator(value);
+    }
+
+    detectOperator(phoneNumber) {
+        // Extraire les 4-5 premiers chiffres après +261
+        const cleanNumber = phoneNumber.replace('+261', '');
+        
+        // Détecter dès qu'on a au moins 2 chiffres après +261
+        if (cleanNumber.length < 2) return;
+        
+        const prefix = cleanNumber.substring(0, 2);
+        
+        let operator = '';
+        let operatorName = '';
+        
+        if (prefix === '34' || prefix === '38') {
+            operator = 'mtn'; // Mvola
+            operatorName = 'Mvola';
+        } else if (prefix === '32' || prefix === '37') {
+            operator = 'orange'; // Orange Money
+            operatorName = 'Orange Money';
+        } else if (prefix === '33') {
+            operator = 'airtel'; // Airtel Money
+            operatorName = 'Airtel Money';
+        }
+        
+        // Mettre à jour le champ opérateur si détecté et différent
+        const operatorSelect = document.getElementById('operator');
+        if (operator && operatorSelect.value !== operator) {
+            operatorSelect.value = operator;
+            
+            // Ajouter l'animation pour montrer la détection
+            operatorSelect.classList.add('operator-detected');
+            setTimeout(() => {
+                operatorSelect.classList.remove('operator-detected');
+            }, 500);
+            
+            // Afficher une notification discrète uniquement si c'est une nouvelle détection
+            if (!this.lastDetectedOperator || this.lastDetectedOperator !== operator) {
+                this.showNotification(`Opérateur détecté: ${operatorName}`, 'info', 2000);
+                this.lastDetectedOperator = operator;
+            }
+        }
     }
 
     generateId() {
@@ -478,7 +533,7 @@ class TransactionManager {
 
     getOperatorLabel(operator) {
         const labels = {
-            telma: 'Telma Money',
+            orange: 'Orange Money',
             mtn: 'Mvola',
             airtel: 'Airtel Money'
         };
@@ -494,7 +549,7 @@ class TransactionManager {
         });
     }
 
-    showNotification(message, type = 'info') {
+    showNotification(message, type = 'info', duration = 3000) {
         const notification = document.createElement('div');
         notification.className = `notification notification-${type}`;
         notification.innerHTML = `
@@ -525,7 +580,7 @@ class TransactionManager {
             setTimeout(() => {
                 document.body.removeChild(notification);
             }, 300);
-        }, 3000);
+        }, duration);
     }
 
     saveTransactions() {
