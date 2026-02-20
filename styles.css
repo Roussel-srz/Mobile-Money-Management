@@ -505,9 +505,30 @@ body {
     font-weight: 500;
 }
 
-.operator-badge.telma { background: #fff3cd; color: #856404; }
+.operator-badge.orange { background: #fff3cd; color: #856404; }
 .operator-badge.mtn { background: #d4edda; color: #155724; }
 .operator-badge.airtel { background: #cce5ff; color: #004085; }
+
+.operator-detected {
+    animation: pulse 0.5s ease-in-out;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+}
+
+@keyframes pulse {
+    0% { 
+        transform: scale(1); 
+        border-color: var(--border-color);
+    }
+    50% { 
+        transform: scale(1.02); 
+        border-color: var(--primary-color);
+    }
+    100% { 
+        transform: scale(1); 
+        border-color: var(--primary-color);
+    }
+}
 
 .action-buttons-cell {
     display: flex;
